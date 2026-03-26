@@ -1,0 +1,47 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    /* ===== File Layout ===== */
+    // "rootDir": "./src",
+    // "outDir": "./dist",
+
+    /* ===== Environment Settings ===== */
+    "module": "nodenext",
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "types": [],
+    "jsx": "react-jsx",
+
+    /* ===== Other Outputs ===== */
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    /* ===== Type Checking ===== */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+
+    /* ===== Path Mapping (for monorepo) ===== */
+    "baseUrl": ".",
+    "paths": {
+       "@drawapp/db": ["packages/db/src"],
+  "@drawapp/db/*": ["packages/db/src/*"],
+      "@drawapp/shared": ["packages/shared/src"],
+      "@drawapp/shared/*": ["packages/shared/src/*"]
+    }
+  },
+
+  /* ===== Includes / Excludes ===== */
+  "include": [
+    "apps/*/src",
+    "packages/*/src"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
+

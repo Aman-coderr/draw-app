@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:http": "tsx http-backend/src/index.ts",
+    "dev:ws": "tsx ws-backend/src/index.ts",
+    "dev": "pnpm run dev:http & pnpm run dev:ws",
+    "build:http": "tsc -p http-backend/tsconfig.json",
+    "build:ws": "tsc -p ws-backend/tsconfig.json",
+    "build": "pnpm run build:http && pnpm run build:ws",
+    "lint": "eslint . --ext .ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@drawapp/db": "workspace:*",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@drawapp/shared": "workspace:*",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.7.5",
+    "@types/pg": "^8.15.5",
+    "@types/ws": "^8.5.10",
+    "eslint": "^9.36.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}
