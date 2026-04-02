@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "Node16",
     "moduleResolution": "node16",
     "target": "ES2022",
     "lib": ["esnext"],
@@ -19,9 +19,5 @@
     "skipLibCheck": true
   },
   "include": [],
-  "references": [
-    { "path": "./http-backend" },
-    { "path": "./ws-backend" }
-  ]
+  "references": [{ "path": "./http-backend" }, { "path": "./ws-backend" }]
 }
-

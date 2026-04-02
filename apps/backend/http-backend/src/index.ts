@@ -17,11 +17,47 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const app = express();
 app.use(express.json());
 app.use(cors());
-const JWT_SECRET = process.env.JWT_SECRET;
+
+const requiredEnvVars = ["JWT_SECRET", "DATABASE_URL"];
+function validateEnvironment() {
+  const missing = requiredEnvVars.filter((v) => !process.env[v]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(", ")}`,
+    );
+  }
+}
+validateEnvironment();
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
 const SaltRounds = 10;
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const MAX_REQUESTS = 10;
+
+function rateLimitMiddleware(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return next();
+  }
+
+  if (record.count >= MAX_REQUESTS) {
+    return res
+      .status(429)
+      .json({ message: "Too many requests. Please try again later." });
+  }
+
+  record.count++;
+  next();
 }
 
 async function initDatabase() {
@@ -48,12 +84,9 @@ async function gracefulShutdown(signal: string) {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
-const server = app.listen(3001, () => {
-  console.log("HTTP server running on port 3001");
-});
-
 initDatabase();
-app.post("/signup", async (req, res) => {
+
+app.post("/signup", rateLimitMiddleware, async (req, res) => {
   const parsedData = UserSchema.safeParse(req.body);
 
   if (!parsedData.success) {
@@ -79,15 +112,25 @@ app.post("/signup", async (req, res) => {
       userId: user.id,
     });
   } catch (e) {
-    console.log(e);
-    res.json({
-      message: "Sign up has failed",
+    console.error("Signup error:", e);
+    res.status(500).json({
+      message: "Something went wrong",
     });
   }
 });
-app.post("/signin", async (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+
+app.post("/signin", rateLimitMiddleware, async (req, res) => {
+  const parsedData = SigninSchema.safeParse(req.body);
+
+  if (!parsedData.success) {
+    return res.status(400).json({
+      message: "Invalid input",
+    });
+  }
+
+  const email = parsedData.data.email;
+  const password = parsedData.data.password;
+
   try {
     const user = await prismaClient.user.findFirst({
       where: {
@@ -108,7 +151,7 @@ app.post("/signin", async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
     const userId = user.id;
     if (passwordMatch) {
-      const token = jwt.sign({ id: userId }, JWT_SECRET);
+      const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "7d" });
       res.json({
         token,
       });
@@ -118,9 +161,9 @@ app.post("/signin", async (req, res) => {
       });
     }
   } catch (e) {
-    console.log(e);
-    res.json({
-      message: "Login has failed",
+    console.error("Signin error:", e);
+    res.status(500).json({
+      message: "Something went wrong",
     });
   }
 });
@@ -131,7 +174,6 @@ app.post("/room", authMiddleware, async (req, res) => {
     return res.status(400).json({
       message: "Incorrect Inputs",
     });
-    return;
   }
   //@ts-ignore
   const userId = req.id;
@@ -175,9 +217,9 @@ app.get("/chats/:roomId", async (req, res) => {
       messages,
     });
   } catch (e) {
-    console.log(e);
-    res.json({
-      error: e,
+    console.error("Chat fetch error:", e);
+    res.status(500).json({
+      message: "Something went wrong",
     });
   }
 });
@@ -192,6 +234,13 @@ app.get("/rooms/:slug", async (req, res) => {
       id: true,
     },
   });
+
+  if (!room) {
+    return res.status(404).json({
+      message: "Room not found",
+    });
+  }
+
   res.json({
     room: {
       id: room.id,
@@ -199,4 +248,15 @@ app.get("/rooms/:slug", async (req, res) => {
   });
 });
 
-app.listen(3000);
+app.get("/health", async (req, res) => {
+  try {
+    await prismaClient.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", database: "connected" });
+  } catch (e) {
+    res.status(503).json({ status: "error", database: "disconnected" });
+  }
+});
+
+const server = app.listen(3001, () => {
+  console.log("HTTP server running on port 3001");
+});

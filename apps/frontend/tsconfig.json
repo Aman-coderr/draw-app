@@ -1,18 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "target": "esnext",
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "types": [
-      "react",
-      "react-dom",
-      "node"
-    ],
+    "lib": ["esnext", "dom"],
+    "types": ["react", "react-dom", "vite/client"],
     "sourceMap": true,
     "declaration": false,
     "declarationMap": false,
@@ -29,7 +22,5 @@
     "checkJs": false,
     "esModuleInterop": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

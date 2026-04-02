@@ -1,2 +1,6 @@
 export {};
-//# sourceMappingURL=index.d.ts.map
+// Allow untyped modules
+declare module "cors" {
+  const cors: any;
+  export = cors;
+}

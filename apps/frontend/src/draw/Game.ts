@@ -1,30 +1,35 @@
-import axios from 'axios';
+import axios from "axios";
 
-type Shape = {
-  type: "rect";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-} | {
-  type: "ellipse";
-  centerX: number;
-  centerY: number;
-  radiusX: number;
-  radiusY: number;
-} | {
-  type: "pointer";
-  points: { x: number; y: number }[];
-} | {
-  type: "line";
-  x: number;
-  y: number;
-  endX: number;
-  endY: number;
-} | {
-  type: "eraser";
-  points: { x: number; y: number }[];
-}
+type Shape =
+  | {
+      type: "rect";
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  | {
+      type: "ellipse";
+      centerX: number;
+      centerY: number;
+      radiusX: number;
+      radiusY: number;
+    }
+  | {
+      type: "pointer";
+      points: { x: number; y: number }[];
+    }
+  | {
+      type: "line";
+      x: number;
+      y: number;
+      endX: number;
+      endY: number;
+    }
+  | {
+      type: "eraser";
+      points: { x: number; y: number }[];
+    };
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -36,7 +41,13 @@ export class Game {
   private startY: number = 0;
   private lastX: number = 0;
   private lastY: number = 0;
-  private currentShape: "rect" | "ellipse" | "pointer" | "line" | "eraser" | null;
+  private currentShape:
+    | "rect"
+    | "ellipse"
+    | "pointer"
+    | "line"
+    | "eraser"
+    | null;
   private snapshot: ImageData | null;
   socket: WebSocket;
   private currentPoints: { x: number; y: number }[] = [];
@@ -77,7 +88,9 @@ export class Game {
     this.initResizeHandler();
   }
 
-  setCurrentShape(shape: "rect" | "ellipse" | "pointer" | "line" | "eraser" | null) {
+  setCurrentShape(
+    shape: "rect" | "ellipse" | "pointer" | "line" | "eraser" | null,
+  ) {
     this.currentShape = shape;
   }
 
@@ -86,7 +99,12 @@ export class Game {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.clearCanvas();
-    this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.snapshot = this.ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height,
+    );
   }
 
   private initResizeHandler() {
@@ -114,7 +132,12 @@ export class Game {
     if (this.currentShape === "pointer" || this.currentShape === "eraser") {
       this.currentPoints = [{ x, y }];
     }
-    this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.snapshot = this.ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height,
+    );
   }
 
   private handlePointerUp(x: number, y: number) {
@@ -128,7 +151,13 @@ export class Game {
       shape = { type: "eraser", points: this.currentPoints };
     }
     if (this.currentShape === "rect") {
-      shape = { type: "rect", x: this.startX, y: this.startY, width: x - this.startX, height: y - this.startY };
+      shape = {
+        type: "rect",
+        x: this.startX,
+        y: this.startY,
+        width: x - this.startX,
+        height: y - this.startY,
+      };
     }
     if (this.currentShape === "ellipse") {
       const centerX = (x + this.startX) / 2;
@@ -138,17 +167,34 @@ export class Game {
       shape = { type: "ellipse", centerX, centerY, radiusX, radiusY };
     }
     if (this.currentShape === "line") {
-      shape = { type: "line", x: this.startX, y: this.startY, endX: x, endY: y };
+      shape = {
+        type: "line",
+        x: this.startX,
+        y: this.startY,
+        endX: x,
+        endY: y,
+      };
     }
 
     if (!shape) return;
 
     this.existingShapes.push(shape);
     this.clearCanvas();
-    this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.snapshot = this.ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height,
+    );
 
     try {
-      this.socket.send(JSON.stringify({ type: "chat", message: JSON.stringify({ shape }), roomId: this.roomId }));
+      this.socket.send(
+        JSON.stringify({
+          type: "chat",
+          message: JSON.stringify({ shape }),
+          roomId: this.roomId,
+        }),
+      );
     } catch (error) {
       console.error("Failed to send shape:", error);
     }
@@ -161,7 +207,7 @@ export class Game {
     if (this.currentShape === "pointer") {
       const linePoints = this.bresenhamLine(this.lastX, this.lastY, x, y);
       this.ctx.fillStyle = "rgba(255,255,255,1)";
-      linePoints.forEach(point => {
+      linePoints.forEach((point) => {
         this.ctx.fillRect(point.x, point.y, 2, 2);
         this.currentPoints.push(point);
       });
@@ -175,9 +221,16 @@ export class Game {
       // ✅ KEY FIX: source-over + black fill. Never use destination-out.
       this.ctx.globalCompositeOperation = "source-over";
       this.ctx.fillStyle = "#000000";
-      linePoints.forEach(point => {
+      linePoints.forEach((point) => {
         this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, this.eraserRadius, 0, Math.PI * 2, false);
+        this.ctx.arc(
+          point.x,
+          point.y,
+          this.eraserRadius,
+          0,
+          Math.PI * 2,
+          false,
+        );
         this.ctx.fill();
         this.currentPoints.push(point);
       });
@@ -216,24 +269,36 @@ export class Game {
   }
 
   // ── Mouse handlers ────────────────────────────────────────────────────────────
-  private onMouseDown(e: MouseEvent) { this.handlePointerDown(e.offsetX, e.offsetY); }
-  private onMouseUp(e: MouseEvent) { this.handlePointerUp(e.offsetX, e.offsetY); }
-  private onMouseMove(e: MouseEvent) { this.handlePointerMove(e.offsetX, e.offsetY); }
+  private onMouseDown(e: MouseEvent) {
+    this.handlePointerDown(e.offsetX, e.offsetY);
+  }
+  private onMouseUp(e: MouseEvent) {
+    this.handlePointerUp(e.offsetX, e.offsetY);
+  }
+  private onMouseMove(e: MouseEvent) {
+    this.handlePointerMove(e.offsetX, e.offsetY);
+  }
 
   // ── Touch handlers ────────────────────────────────────────────────────────────
   private onTouchStart(e: TouchEvent) {
     e.preventDefault();
-    const pos = this.getTouchPos(e.touches[0]);
+    const touch = e.touches[0];
+    if (!touch) return;
+    const pos = this.getTouchPos(touch);
     this.handlePointerDown(pos.x, pos.y);
   }
   private onTouchEnd(e: TouchEvent) {
     e.preventDefault();
-    const pos = this.getTouchPos(e.changedTouches[0]);
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const pos = this.getTouchPos(touch);
     this.handlePointerUp(pos.x, pos.y);
   }
   private onTouchMove(e: TouchEvent) {
     e.preventDefault();
-    const pos = this.getTouchPos(e.touches[0]);
+    const touch = e.touches[0];
+    if (!touch) return;
+    const pos = this.getTouchPos(touch);
     this.handlePointerMove(pos.x, pos.y);
   }
 
@@ -245,9 +310,15 @@ export class Game {
   }
 
   initTouchHandlers() {
-    this.canvas.addEventListener("touchstart", this.boundTouchStart, { passive: false });
-    this.canvas.addEventListener("touchend", this.boundTouchEnd, { passive: false });
-    this.canvas.addEventListener("touchmove", this.boundTouchMove, { passive: false });
+    this.canvas.addEventListener("touchstart", this.boundTouchStart, {
+      passive: false,
+    });
+    this.canvas.addEventListener("touchend", this.boundTouchEnd, {
+      passive: false,
+    });
+    this.canvas.addEventListener("touchmove", this.boundTouchMove, {
+      passive: false,
+    });
   }
 
   destroy() {
@@ -261,17 +332,32 @@ export class Game {
   }
 
   // ── Bresenham ─────────────────────────────────────────────────────────────────
-  private bresenhamLine(x0: number, y0: number, x1: number, y1: number): { x: number; y: number }[] {
+  private bresenhamLine(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+  ): { x: number; y: number }[] {
     const points: { x: number; y: number }[] = [];
-    const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy, x = x0, y = y0;
+    const dx = Math.abs(x1 - x0),
+      dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1,
+      sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy,
+      x = x0,
+      y = y0;
     while (true) {
       points.push({ x, y });
       if (x === x1 && y === y1) break;
       const e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; x += sx; }
-      if (e2 < dx) { err += dx; y += sy; }
+      if (e2 > -dy) {
+        err -= dy;
+        x += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        y += sy;
+      }
     }
     return points;
   }
@@ -286,10 +372,20 @@ export class Game {
     try {
       this.existingShapes = await this.getExistingShapes();
       this.clearCanvas();
-      this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.snapshot = this.ctx.getImageData(
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height,
+      );
     } catch (error) {
       console.error("Failed to load existing shapes:", error);
-      this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.snapshot = this.ctx.getImageData(
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height,
+      );
     }
   }
 
@@ -301,7 +397,12 @@ export class Game {
           const parsedShape = JSON.parse(message.message);
           this.existingShapes.push(parsedShape.shape);
           this.clearCanvas();
-          this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+          this.snapshot = this.ctx.getImageData(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height,
+          );
         }
       } catch (error) {
         console.error("Error handling socket message:", error);
@@ -319,15 +420,21 @@ export class Game {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     // 2. Replay all shapes in insertion order so eraser correctly covers earlier shapes
-    this.existingShapes.forEach(shape => {
-
+    this.existingShapes.forEach((shape) => {
       if (shape.type === "eraser") {
         // ✅ Black fill — NOT destination-out. This means you can draw on top again.
         this.ctx.globalCompositeOperation = "source-over";
         this.ctx.fillStyle = "#000000";
-        shape.points.forEach(point => {
+        shape.points.forEach((point) => {
           this.ctx.beginPath();
-          this.ctx.arc(point.x, point.y, this.eraserRadius, 0, Math.PI * 2, false);
+          this.ctx.arc(
+            point.x,
+            point.y,
+            this.eraserRadius,
+            0,
+            Math.PI * 2,
+            false,
+          );
           this.ctx.fill();
         });
         return;
@@ -341,7 +448,15 @@ export class Game {
       }
       if (shape.type === "ellipse") {
         this.ctx.beginPath();
-        this.ctx.ellipse(shape.centerX, shape.centerY, shape.radiusX, shape.radiusY, 0, 0, 2 * Math.PI);
+        this.ctx.ellipse(
+          shape.centerX,
+          shape.centerY,
+          shape.radiusX,
+          shape.radiusY,
+          0,
+          0,
+          2 * Math.PI,
+        );
         this.ctx.stroke();
       }
       if (shape.type === "line") {
@@ -352,7 +467,7 @@ export class Game {
       }
       if (shape.type === "pointer") {
         this.ctx.fillStyle = "rgba(255,255,255,1)";
-        shape.points.forEach(p => {
+        shape.points.forEach((p) => {
           this.ctx.fillRect(p.x, p.y, 2, 2);
         });
       }
@@ -361,17 +476,22 @@ export class Game {
 
   // ── Fetch existing shapes ─────────────────────────────────────────────────────
   async getExistingShapes(): Promise<Shape[]> {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
     try {
       const res = await axios.get(`${backendUrl}/chats/${this.roomId}`);
-      const messages = res.data.messages ?? (Array.isArray(res.data) ? res.data : null);
+      const messages =
+        res.data.messages ?? (Array.isArray(res.data) ? res.data : null);
       if (!Array.isArray(messages)) return [];
       return messages
         .map((x: any) => {
           try {
-            const data = typeof x.message === 'string' ? JSON.parse(x.message) : x.message;
+            const data =
+              typeof x.message === "string" ? JSON.parse(x.message) : x.message;
             return data.shape;
-          } catch { return null; }
+          } catch {
+            return null;
+          }
         })
         .filter(Boolean);
     } catch (error: any) {
