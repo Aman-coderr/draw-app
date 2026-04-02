@@ -1,4 +1,4 @@
-import { Circle, Pencil, RectangleHorizontalIcon, Eraser, EllipsisVertical } from "lucide-react";
+import { Circle, Pencil, RectangleHorizontalIcon, Eraser, Slash } from "lucide-react";
 import { initDraw } from "../pages/Canvas.js";
 import { useState, useEffect, useRef } from "react";
 import { Game } from "../draw/Game.js";
@@ -12,7 +12,6 @@ export function Canvas({ roomId, socket }: { roomId: number, socket: WebSocket }
     let cleanup: (() => void) | undefined;
 
     if (canvasRef.current && !game) {
-      // Set black background immediately
       const ctx = canvasRef.current.getContext("2d");
       if (ctx) {
         ctx.fillStyle = "black";
@@ -30,11 +29,9 @@ export function Canvas({ roomId, socket }: { roomId: number, socket: WebSocket }
     }
 
     return () => {
-      if (cleanup) {
-        cleanup();
-      }
+      if (cleanup) cleanup();
     };
-  }, [roomId, socket]); // ADD dependencies
+  }, [roomId, socket]);
 
   useEffect(() => {
     if (game) {
@@ -43,51 +40,55 @@ export function Canvas({ roomId, socket }: { roomId: number, socket: WebSocket }
   }, [currentShape, game]);
 
   const btnStyle = (shape: string) =>
-    `p-2 rounded transition 
-     ${currentShape === shape ? "bg-blue-600" : "bg-gray-700"} 
-     hover:bg-gray-600 cursor-pointer`;
+    `flex items-center justify-center w-11 h-11 sm:w-10 sm:h-10 rounded-lg transition-all duration-150 active:scale-95
+     ${currentShape === shape
+      ? "bg-blue-600 shadow-lg shadow-blue-900/50"
+      : "bg-gray-700 hover:bg-gray-600"
+    } cursor-pointer`;
+
+  const tools: { shape: "rect" | "ellipse" | "pointer" | "line" | "eraser"; icon: React.ReactNode; label: string }[] = [
+    { shape: "pointer", icon: <Pencil size={20} color="white" />, label: "Pen" },
+    { shape: "rect", icon: <RectangleHorizontalIcon size={20} color="white" />, label: "Rect" },
+    { shape: "ellipse", icon: <Circle size={20} color="white" />, label: "Circle" },
+    { shape: "line", icon: <Slash size={20} color="white" />, label: "Line" },
+    { shape: "eraser", icon: <Eraser size={20} color="white" />, label: "Erase" },
+  ];
 
   return (
-    <div className="w-max">
-      <div className="relative inline-block">
-        <canvas
-          ref={canvasRef}
-          width={1536}
-          height={695}
-          style={{ backgroundColor: "black" }} // ADD inline style as backup
-        />
-        <div className="absolute top-0 grid grid-cols-5 gap-5 rounded p-2">
-          <div
-            className={btnStyle("ellipse")}
-            onClick={() => setCurrentShape("ellipse")}
+
+    <div className="fixed inset-0 overflow-hidden bg-black">
+
+      <canvas
+        ref={canvasRef}
+        className="block w-full h-full touch-none"
+        style={{ backgroundColor: "black" }}
+      />
+
+
+      <div
+        className="
+          fixed z-20 flex gap-2 p-2 rounded-xl
+          bg-gray-800/90 backdrop-blur-sm shadow-2xl border border-gray-700
+
+          /* mobile: bottom bar */
+          bottom-4 left-1/2 -translate-x-1/2
+
+          /* tablet/desktop: top-left */
+          sm:bottom-auto sm:top-4 sm:left-4 sm:translate-x-0
+        "
+      >
+        {tools.map(({ shape, icon, label }) => (
+          <button
+            key={shape}
+            className={btnStyle(shape)}
+            onClick={() => setCurrentShape(shape)}
+            title={label}
+            aria-label={label}
           >
-            <Circle color="white" />
-          </div>
-          <div
-            className={btnStyle("rect")}
-            onClick={() => setCurrentShape("rect")}
-          >
-            <RectangleHorizontalIcon color="white" />
-          </div>
-          <div
-            className={btnStyle("pointer")}
-            onClick={() => setCurrentShape("pointer")}
-          >
-            <Pencil color="white" />
-          </div>
-          <div
-            className={btnStyle("eraser")}
-            onClick={() => setCurrentShape("eraser")}>
-            <Eraser color="white" />
-          </div>
-          <div
-            className={btnStyle("line")}
-            onClick={() => setCurrentShape("line")}>
-            <EllipsisVertical color="white" />
-          </div>
-        </div>
+            {icon}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
-

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Pencil, Mail, Lock, ArrowRight } from 'lucide-react';
 import axios from "axios";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 export default function SignIn() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -25,41 +27,34 @@ export default function SignIn() {
     }
 
     try {
-      const res = await axios.post('http://localhost:3000/signin', formData);
+      const res = await axios.post(`${backendUrl}/signin`, formData);
       localStorage.setItem('token', res.data.token);
       navigate('/room-selection');
-    }
-    catch (err: any) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      }
-      else {
-        setError("Something Went Wrong. Please Try Again Later");
-      }
-    }
-    finally {
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong. Please try again later.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center gap-2 justify-center mb-8 hover:opacity-80 transition-opacity">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-            <Pencil className="w-6 h-6 text-white" />
+        <Link to="/" className="flex items-center gap-2 justify-center mb-6 sm:mb-8 hover:opacity-80 transition-opacity">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+            <Pencil className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+          <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
             Excelidraw
           </span>
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">Welcome Back</h1>
-          <p className="text-slate-600 text-center mb-8">Sign in to your account</p>
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2 text-center">Welcome Back</h1>
+          <p className="text-slate-600 text-center mb-6 sm:mb-8 text-sm sm:text-base">Sign in to your account</p>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-5 text-sm">
               {error}
             </div>
           )}
@@ -75,7 +70,7 @@ export default function SignIn() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -90,17 +85,14 @@ export default function SignIn() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 border border-slate-300 rounded accent-blue-600"
-                />
+                <input type="checkbox" className="w-4 h-4 border border-slate-300 rounded accent-blue-600" />
                 <span className="text-sm text-slate-600">Remember me</span>
               </label>
               <Link to="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -111,14 +103,14 @@ export default function SignIn() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               {loading ? 'Signing In...' : 'Sign In'}
               {!loading && <ArrowRight className="w-5 h-5" />}
             </button>
           </form>
 
-          <p className="text-slate-600 text-center mt-6">
+          <p className="text-slate-600 text-center mt-6 text-sm sm:text-base">
             Don't have an account?{' '}
             <Link to="/signup" className="text-blue-600 font-semibold hover:text-blue-700">
               Sign Up
@@ -129,4 +121,3 @@ export default function SignIn() {
     </div>
   );
 }
-
