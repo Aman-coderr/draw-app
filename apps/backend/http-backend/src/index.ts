@@ -101,7 +101,7 @@ app.post("/signup", rateLimitMiddleware, async (req, res) => {
   const parsedData = UserSchema.safeParse(req.body);
 
   if (!parsedData.success) {
-    const errors = parsedData.error.issues.map((issue) => issue.message);
+    const errors = parsedData.error.issues.map((issue: any) => issue.message);
     return res.status(400).json({
       message: errors.join(", "),
     });
