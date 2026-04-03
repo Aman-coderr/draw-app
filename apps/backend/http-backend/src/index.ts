@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Express } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
@@ -11,7 +11,7 @@ import { UserSchema, SigninSchema, CreateRoomSchema } from "@drawapp/shared";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
-const app = express();
+const app: Express = express();
 app.use(express.json());
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const ALLOWED_ORIGINS = FRONTEND_URL.split(",").map((url) => url.trim());

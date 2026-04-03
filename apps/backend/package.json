@@ -6,10 +6,13 @@
   "scripts": {
     "dev:http": "tsx http-backend/src/index.ts",
     "dev:ws": "tsx ws-backend/src/index.ts",
-    "dev": "pnpm run dev:http & pnpm run dev:ws",
+    "dev:server": "tsx src/index.ts",
+    "dev": "pnpm run dev:server",
     "build:http": "tsc -p http-backend/tsconfig.json",
     "build:ws": "tsc -p ws-backend/tsconfig.json",
-    "build": "pnpm run build:http && pnpm run build:ws",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build": "pnpm run build:http && pnpm run build:ws && pnpm run build:server",
+    "start": "node dist/src/index.js",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --noEmit"
   },
