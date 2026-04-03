@@ -1,4 +1,5 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
+import type { Server } from "http";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import {
@@ -7,18 +8,14 @@ import {
   connectDatabase,
 } from "@drawapp/db/client";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
-const wss = new WebSocketServer({ port: 8080 });
+dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined");
 }
 
 initDatabase().then(() => {
-  console.log("WebSocket server starting on port 8080");
+  console.log("WebSocket Logic Initialised");
 });
 
 async function initDatabase() {
@@ -32,16 +29,6 @@ async function initDatabase() {
 }
 
 async function gracefulShutdown(signal: string) {
-  console.log(`\n${signal} received. Starting graceful shutdown...`);
-
-  wss.clients.forEach((client) => {
-    client.close(1001, "Server shutting down");
-  });
-
-  wss.close(() => {
-    console.log("WebSocket server closed");
-  });
-
   await disconnectDatabase();
   console.log("Graceful shutdown complete");
   process.exit(0);
@@ -103,80 +90,85 @@ function checkUser(token: string): string | null {
     return null;
   }
 }
-wss.on("connection", async function (ws, request) {
-  const url = request.url;
-  if (!url) {
-    return;
-  }
-  const queryParams = new URLSearchParams(url.split("?")[1]);
-  const userToken = queryParams.get("token") || "";
-  const userAuthenticated = checkUser(userToken);
 
-  if (userAuthenticated === null) {
-    ws.close();
-    return;
-  }
+export function setupWebSocket(server: Server) {
+  const wss = new WebSocketServer({ server });
 
-  users.push({
-    ws,
-    userId: userAuthenticated,
-    rooms: [],
-  });
-
-  ws.on("message", async (message) => {
-    let parsedData;
-    if (typeof message != "string") {
-      parsedData = JSON.parse(message.toString());
-    } else {
-      parsedData = JSON.parse(message);
+  wss.on("connection", async function (ws, request) {
+    const url = request.url;
+    if (!url) {
+      return;
     }
-    if (parsedData.type === "join_room") {
-      const user = users.find((x) => x.ws === ws);
-      const roomId = String(parsedData.roomId);
+    const queryParams = new URLSearchParams(url.split("?")[1]);
+    const userToken = queryParams.get("token") || "";
+    const userAuthenticated = checkUser(userToken);
 
-      if (user && !user.rooms.includes(parsedData.roomId)) {
-        user.rooms.push(parsedData.roomId);
-      }
+    if (userAuthenticated === null) {
+      ws.close();
+      return;
     }
 
-    if (parsedData.type === "leave_room") {
-      const user = users.find((x) => x.ws === ws);
+    users.push({
+      ws,
+      userId: userAuthenticated,
+      rooms: [],
+    });
 
-      if (!user) {
-        return;
+    ws.on("message", async (message) => {
+      let parsedData;
+      if (typeof message != "string") {
+        parsedData = JSON.parse(message.toString());
+      } else {
+        parsedData = JSON.parse(message);
       }
-      const roomId = String(parsedData.roomId);
-      user.rooms = user.rooms.filter((x) => x !== parsedData.roomId);
-    }
+      if (parsedData.type === "join_room") {
+        const user = users.find((x) => x.ws === ws);
+        const roomId = String(parsedData.roomId);
 
-    if (parsedData.type === "chat") {
-      const roomId = parsedData.roomId;
-      const message = parsedData.message;
-
-      try {
-        await saveChatWithRetry(Number(roomId), message, userAuthenticated);
-      } catch (error) {
-        console.error("Failed to save chat after retries:", error);
-        ws.send(
-          JSON.stringify({ type: "error", message: "Failed to send message" }),
-        );
-      }
-
-      users.forEach((user) => {
-        if (user.rooms.includes(roomId)) {
-          try {
-            user.ws.send(
-              JSON.stringify({
-                type: "chat",
-                message: message,
-                roomId,
-              }),
-            );
-          } catch (e) {
-            console.log(e);
-          }
+        if (user && !user.rooms.includes(parsedData.roomId)) {
+          user.rooms.push(parsedData.roomId);
         }
-      });
-    }
+      }
+
+      if (parsedData.type === "leave_room") {
+        const user = users.find((x) => x.ws === ws);
+
+        if (!user) {
+          return;
+        }
+        const roomId = String(parsedData.roomId);
+        user.rooms = user.rooms.filter((x) => x !== parsedData.roomId);
+      }
+
+      if (parsedData.type === "chat") {
+        const roomId = parsedData.roomId;
+        const message = parsedData.message;
+
+        try {
+          await saveChatWithRetry(Number(roomId), message, userAuthenticated);
+        } catch (error) {
+          console.error("Failed to save chat after retries:", error);
+          ws.send(
+            JSON.stringify({ type: "error", message: "Failed to send message" }),
+          );
+        }
+
+        users.forEach((user) => {
+          if (user.rooms.includes(roomId)) {
+            try {
+              user.ws.send(
+                JSON.stringify({
+                  type: "chat",
+                  message: message,
+                  roomId,
+                }),
+              );
+            } catch (e) {
+              console.log(e);
+            }
+          }
+        });
+      }
+    });
   });
-});
+}

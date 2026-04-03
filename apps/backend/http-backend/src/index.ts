@@ -9,11 +9,8 @@ import {
 import { authMiddleware } from "./authmiddleware.js";
 import { UserSchema, SigninSchema, CreateRoomSchema } from "@drawapp/shared";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+dotenv.config();
 import cors from "cors";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const app = express();
 app.use(express.json());
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -90,13 +87,10 @@ async function initDatabase() {
 async function gracefulShutdown(signal: string) {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-  server.close(async () => {
-    console.log("HTTP server closed");
-    await disconnectDatabase();
-    console.log("Database disconnected");
-    process.exit(0);
-  });
-}
+  await disconnectDatabase();
+  console.log("Database disconnected");
+  process.exit(0);
+};
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
@@ -275,6 +269,6 @@ app.get("/health", async (req, res) => {
   }
 });
 
-const server = app.listen(3001, () => {
-  console.log("HTTP server running on port 3001");
-});
+export default app;
+
+
