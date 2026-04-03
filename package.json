@@ -2,7 +2,7 @@
   "name": "draw-app",
   "engines": {
     "node": "22.x"
-  }
+  },
   "private": true,
   "workspaces": [
     "apps/*",
@@ -22,9 +22,6 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "packageManager": "pnpm@10.20.0",
-  "engines": {
-    "node": ">=18"
-  },
   "dependencies": {
     "dotenv": "^17.2.3"
   }
