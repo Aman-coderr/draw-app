@@ -3,11 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist/server",
     "rootDir": "./src",
-    "composite": true
+    "composite": true,
+    "noImplicitAny": false
   },
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
   "references": [
     {
       "path": "./http-backend"

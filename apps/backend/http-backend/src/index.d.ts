@@ -1,6 +1,3 @@
-export {};
-// Allow untyped modules
-declare module "cors" {
-  const cors: any;
-  export = cors;
-}
+import { Express } from "express";
+declare const app: Express;
+export default app;
