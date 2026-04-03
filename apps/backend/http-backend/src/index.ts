@@ -16,7 +16,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const app = express();
 app.use(express.json());
-app.use(cors());
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const ALLOWED_ORIGINS = FRONTEND_URL.split(",").map((url) => url.trim());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        ALLOWED_ORIGINS.includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
 
 const requiredEnvVars = ["JWT_SECRET", "DATABASE_URL"];
 function validateEnvironment() {
@@ -90,9 +107,9 @@ app.post("/signup", rateLimitMiddleware, async (req, res) => {
   const parsedData = UserSchema.safeParse(req.body);
 
   if (!parsedData.success) {
-    const firstError = parsedData.error.issues[0]?.message || "Invalid Input";
+    const errors = parsedData.error.issues.map((issue) => issue.message);
     return res.status(400).json({
-      message: firstError,
+      message: errors.join(", "),
     });
   }
 
@@ -123,8 +140,9 @@ app.post("/signin", rateLimitMiddleware, async (req, res) => {
   const parsedData = SigninSchema.safeParse(req.body);
 
   if (!parsedData.success) {
+    const errors = parsedData.error.issues.map((issue) => issue.message);
     return res.status(400).json({
-      message: "Invalid input",
+      message: errors.join(", "),
     });
   }
 

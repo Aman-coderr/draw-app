@@ -9,7 +9,29 @@ export default function SignIn() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<{
+    email?: boolean;
+    password?: boolean;
+  }>({});
   const navigate = useNavigate();
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTouched({ ...touched, [e.target.name]: true });
+  };
+
+  const getEmailError = () => {
+    if (!touched.email) return "";
+    if (!formData.email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      return "Invalid email format";
+    return "";
+  };
+
+  const getPasswordError = () => {
+    if (!touched.password) return "";
+    if (!formData.password) return "Password is required";
+    return "";
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -81,10 +103,18 @@ export default function SignIn() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getEmailError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getEmailError() && (
+                <p className="text-red-500 text-xs mt-1">{getEmailError()}</p>
+              )}
             </div>
 
             <div>
@@ -98,10 +128,20 @@ export default function SignIn() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getPasswordError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getPasswordError() && (
+                <p className="text-red-500 text-xs mt-1">
+                  {getPasswordError()}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between mb-2">

@@ -14,7 +14,56 @@ export default function SignUp() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<{
+    username?: boolean;
+    email?: boolean;
+    password?: boolean;
+    confirmPassword?: boolean;
+  }>({});
   const navigate = useNavigate();
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTouched({ ...touched, [e.target.name]: true });
+  };
+
+  const getPasswordError = () => {
+    if (!touched.password) return "";
+    if (!formData.password) return "Password is required";
+    if (formData.password.length < 8)
+      return "Password must contain atleast 8 characters";
+    if (!/[a-z]/.test(formData.password))
+      return "Password must have a lowercase letter";
+    if (!/[A-Z]/.test(formData.password))
+      return "Password must have a uppercase letter";
+    if (!/\d/.test(formData.password)) return "Password must have a number";
+    if (!/[^A-Za-z0-9]/.test(formData.password))
+      return "Password must contain a Special Character";
+    return "";
+  };
+
+  const getConfirmPasswordError = () => {
+    if (!touched.confirmPassword) return "";
+    if (!formData.confirmPassword) return "Please confirm your password";
+    if (formData.password !== formData.confirmPassword)
+      return "Passwords do not match";
+    return "";
+  };
+
+  const getUsernameError = () => {
+    if (!touched.username) return "";
+    if (!formData.username) return "Username is required";
+    if (formData.username.length < 5)
+      return "Username must be at least 5 characters";
+    return "";
+  };
+
+  const getEmailError = () => {
+    if (!touched.email) return "";
+    if (!formData.email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      return "Invalid email format";
+    return "";
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -109,10 +158,20 @@ export default function SignUp() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getUsernameError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getUsernameError() && (
+                <p className="text-red-500 text-xs mt-1">
+                  {getUsernameError()}
+                </p>
+              )}
             </div>
 
             <div>
@@ -126,10 +185,18 @@ export default function SignUp() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getEmailError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getEmailError() && (
+                <p className="text-red-500 text-xs mt-1">{getEmailError()}</p>
+              )}
             </div>
 
             <div>
@@ -143,10 +210,20 @@ export default function SignUp() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getPasswordError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getPasswordError() && (
+                <p className="text-red-500 text-xs mt-1">
+                  {getPasswordError()}
+                </p>
+              )}
             </div>
 
             <div>
@@ -160,10 +237,20 @@ export default function SignUp() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition text-sm sm:text-base ${
+                    getConfirmPasswordError()
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:ring-blue-500"
+                  }`}
                 />
               </div>
+              {getConfirmPasswordError() && (
+                <p className="text-red-500 text-xs mt-1">
+                  {getConfirmPasswordError()}
+                </p>
+              )}
             </div>
 
             <button
