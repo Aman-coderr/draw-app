@@ -4,8 +4,12 @@
     "module": "Node16",
     "moduleResolution": "node16",
     "target": "ES2022",
-    "lib": ["esnext"],
-    "types": ["node"],
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "node"
+    ],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -16,13 +20,6 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@http-backend": ["./http-backend/dist/index.js"],
-      "@http-backend/*": ["./http-backend/dist/*"],
-      "@ws-backend": ["./ws-backend/dist/index.js"],
-      "@ws-backend/*": ["./ws-backend/dist/*"]
-    }
+    "skipLibCheck": true
   }
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "exports": {
-    "./client": "./dist/client.js"
+    "./client": "./src/index.ts"
   },
   "files": [
     "dist",

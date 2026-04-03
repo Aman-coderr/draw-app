@@ -11,8 +11,7 @@
     "build:http": "tsc -p http-backend/tsconfig.json",
     "build:ws": "tsc -p ws-backend/tsconfig.json",
     "build:server": "tsc -p tsconfig.server.json",
-    "build": "pnpm run build:http && pnpm run build:ws && pnpm run build:server && pnpm run postbuild",
-    "postbuild": "cp -r http-backend/dist dist/http-backend && cp -r ws-backend/dist dist/ws-backend && node postbuild.mjs",
+    "build": "pnpm run build:http && pnpm run build:ws && pnpm run build:server",
     "start": "node dist/server/index.js",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --noEmit"
