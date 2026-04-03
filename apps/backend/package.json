@@ -11,7 +11,7 @@
     "build:http": "tsc -p http-backend/tsconfig.json",
     "build:ws": "tsc -p ws-backend/tsconfig.json",
     "build:server": "tsc -p tsconfig.server.json",
-    "build": "pnpm run build:http && pnpm run build:ws && pnpm run build:server",
+    "build": "pnpm exec prisma generate && pnpm run build:http && pnpm run build:ws && pnpm run build:server",
     "start": "node dist/src/index.js",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --noEmit"
