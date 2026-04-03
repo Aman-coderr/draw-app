@@ -4,22 +4,25 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "exports":{
-   "./client":"./src/index.ts"
+  "exports": {
+    "./client": "./src/index.ts"
   },
-  "files": ["dist", "prisma"],
+  "files": [
+    "dist",
+    "prisma"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/client": "^5.21.1" 
+    "@prisma/client": "^5.21.1",
+    "@types/node": "^25.5.2"
   },
   "devDependencies": {
     "prisma": "^5.21.1",
     "typescript": "^5.9.2"
   }
 }
-

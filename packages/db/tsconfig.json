@@ -6,7 +6,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2022",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -19,9 +21,16 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@drawapp/shared": ["../shared/src"],
-      "@drawapp/shared/*": ["../shared/src/*"]
-    }
+      "@drawapp/shared": [
+        "../shared/src"
+      ],
+      "@drawapp/shared/*": [
+        "../shared/src/*"
+      ]
+    },
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src",
@@ -32,4 +41,3 @@
     "dist"
   ]
 }
-
