@@ -12,7 +12,7 @@
     "build:ws": "tsc -p ws-backend/tsconfig.json",
     "build:server": "tsc -p tsconfig.server.json",
     "build": "pnpm run build:http && pnpm run build:ws && pnpm run build:server",
-    "start": "node dist/server/index.js",
+    "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --noEmit"
   },
